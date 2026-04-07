@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IPL Simulator 2026</title>
+<style>
+:root{--bg:#070b10;--bg2:#0f1621;--panel:#141d2a;--panel2:#1a2434;--text:#eef3fb;--muted:#9fb0c8;--border:rgba(255,255,255,.08);--gold:#f3c95b;--red:#e04848;--blue:#6bb3ff;--green:#43d38a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,var(--bg),#0a1018 40%,#071017);color:var(--text)}
+button,input,select{font:inherit}
+.topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;background:rgba(5,8,13,.95);border-bottom:1px solid var(--border);backdrop-filter:blur(8px)}
+.brand small{display:block;color:#9eb0c7;letter-spacing:4px;text-transform:uppercase;font-size:.75rem}
+.brand strong{display:block;font-size:2rem;line-height:.95;font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;letter-spacing:-1px;text-transform:uppercase}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+button{cursor:pointer;padding:11px 16px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,#182230,#101722);color:#fff;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+button:hover{border-color:rgba(255,255,255,.24)}button.secondary{background:transparent;color:#d1ddf0}button.primary{border-color:rgba(243,201,91,.4);box-shadow:inset 0 0 0 1px rgba(243,201,91,.12)}button:disabled{opacity:.45;cursor:not-allowed}
+.app{max-width:1320px;margin:0 auto;padding:22px}.screen{display:none}.screen.active{display:block}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);padding:22px}
+.heroBanner{position:relative;min-height:360px;overflow:hidden;background:radial-gradient(circle at top right, rgba(107,179,255,.2), transparent 25%), linear-gradient(135deg,#111927,#0c1220)}
+.heroBanner:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.76),rgba(0,0,0,.35) 42%, rgba(0,0,0,.72)),url("https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;opacity:.85}
+.heroInner{position:relative;padding:34px;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.pill{display:inline-block;color:var(--blue);font-size:.8rem;letter-spacing:4px;text-transform:uppercase}
+.big{font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;font-size:clamp(3rem,5vw,5.2rem);line-height:.9;max-width:9ch;text-transform:uppercase}
+.small{color:var(--muted);line-height:1.5}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.stat{padding:20px;background:rgba(255,255,255,.03);border:1px solid var(--border)}.stat .k{font-size:.78rem;color:#c6d2e6;letter-spacing:3px;text-transform:uppercase}.stat .v{margin-top:8px;font-size:2rem;font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif}
+.sectionHead,.line{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.teamGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:18px}
+.teamCard{border:1px solid var(--border);background:linear-gradient(180deg,#192231,#111a26);padding:18px;cursor:pointer;transition:.18s}.teamCard:hover{border-color:rgba(224,72,72,.9);transform:translateY(-2px)}
+.teamBadge{width:78px;height:78px;display:grid;place-items:center;color:#fff;border:1px solid rgba(255,255,255,.12);font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;font-size:1.4rem;letter-spacing:1px}
+.badge{display:inline-block;padding:6px 10px;font-size:.76rem;font-weight:800;letter-spacing:1px;text-transform:uppercase}.blue{background:rgba(107,179,255,.15);color:#9fd0ff}.red{background:rgba(224,72,72,.15);color:#ffb0b0}.gold{background:rgba(243,201,91,.15);color:#ffe28c}.green{background:rgba(67,211,138,.15);color:#aaf2cd}
+.nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}.nav button.active{border-color:rgba(224,72,72,.9);box-shadow:inset 0 0 0 1px rgba(224,72,72,.35)}
+.grid2{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}.list{display:grid;gap:12px}.card{padding:14px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+.simProgress{height:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06);overflow:hidden}.simProgress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),#ff9f58,var(--blue));background-size:200% 100%;animation:flow 2s linear infinite;transition:width .35s ease}@keyframes flow{to{background-position:200% 0}}
+.auctionOverlay,.tossOverlay{position:fixed;inset:0;z-index:40;background:radial-gradient(circle at center, rgba(35,71,123,.35), rgba(3,8,18,.96) 58%);display:none;align-items:center;justify-content:center;padding:20px}.auctionOverlay.show,.tossOverlay.show{display:flex}
+.overlayBox{width:min(1080px,100%);background:linear-gradient(180deg,#101a27,#0b121c);border:1px solid rgba(255,255,255,.12);padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.5)}.flash{font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;font-size:2.4rem;letter-spacing:1px}
+.bidButtons,.actionGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.commentary{display:grid;gap:8px;max-height:260px;overflow:auto;align-content:start;overflow-anchor:none;scroll-behavior:auto}.commentary .item{padding:10px 12px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+.countBox{padding:16px;border:1px solid rgba(243,201,91,.2);background:linear-gradient(135deg,rgba(243,201,91,.12),rgba(255,175,84,.06))}.scoreBox{padding:18px;border:1px solid var(--border);background:linear-gradient(180deg,#10223b,#173051)}
+.inningsStrip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:14px}.actionGrid{grid-template-columns:repeat(4,1fr)}
+.tossStage{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;text-align:center}.coin{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 30% 30%, #ffe58a, #d9a91c 65%, #8d6609);color:#251800;font-weight:1000;box-shadow:0 0 30px rgba(243,201,91,.22)}.coin.flip{animation:flip 1.2s ease-in-out}@keyframes flip{0%{transform:rotateY(0) translateY(0)}25%{transform:rotateY(180deg) translateY(-24px)}50%{transform:rotateY(360deg) translateY(-42px)}75%{transform:rotateY(540deg) translateY(-24px)}100%{transform:rotateY(720deg) translateY(0)}}.vs{font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;font-size:1.7rem;color:var(--gold)}
+table{width:100%;border-collapse:collapse}th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:left}th{color:var(--muted)}
+@media (max-width:1100px){.hero,.grid2,.tossStage{grid-template-columns:1fr}.cards4,.inningsStrip,.actionGrid{grid-template-columns:repeat(2,1fr)}}
+
+
+@media (max-width:1100px){}
+
+.statusStrip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
+.statusMini{padding:10px 12px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+.statusMini .k{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:#bfd0e8}
+.statusMini .v{margin-top:6px;font-weight:800}
+@media (max-width:720px){.app{padding:12px}.topbar{padding:12px}.stats,.bidButtons,.actionGrid,.cards4,.inningsStrip,.statusStrip{grid-template-columns:1fr}.big{max-width:none}}
+
+.tutorialOverlay{position:fixed;inset:0;z-index:60;background:radial-gradient(circle at center, rgba(35,71,123,.28), rgba(3,8,18,.94) 62%);display:flex;align-items:center;justify-content:center;padding:20px;pointer-events:auto}
+.tutorialOverlay.hidden{display:none}
+.tutorialBox{width:min(920px,100%);background:linear-gradient(180deg,#101a27,#0b121c);border:1px solid rgba(255,255,255,.12);padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.5);position:relative;z-index:61}
+.tutorialGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px}
+.tutorialStep{padding:16px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+.tutorialStepNum{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(243,201,91,.15);color:var(--gold);font-weight:900;margin-bottom:10px}
+.tutorialFooter{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+@media (max-width:900px){.tutorialGrid{grid-template-columns:1fr}}
+
+
+:root{--purple:#8b5cf6;--orange:#fb923c;--pink:#ec4899}
+button{transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
+button:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.panel{box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.teamCard,.card,.stat{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.teamCard:hover,.card:hover,.stat:hover{box-shadow:0 12px 26px rgba(0,0,0,.18)}
+.playerRow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;letter-spacing:.5px;border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.avatar.small{width:36px;height:36px;font-size:.82rem}
+.rewardBar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.rewardCard{padding:14px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(107,179,255,.09),rgba(236,72,153,.06))}
+.shotPulse{animation:shotPulse .55s ease}
+@keyframes shotPulse{0%{transform:scale(.98);filter:brightness(1)}50%{transform:scale(1.02);filter:brightness(1.12)}100%{transform:scale(1);filter:brightness(1)}}
+.resultOverlay{position:fixed;inset:0;z-index:55;background:radial-gradient(circle at center, rgba(35,71,123,.22), rgba(3,8,18,.92) 62%);display:none;align-items:center;justify-content:center;padding:20px}
+.resultOverlay.show{display:flex}
+.resultBox{width:min(920px,100%);background:linear-gradient(180deg,#111c2b,#0c1320);border:1px solid rgba(255,255,255,.12);padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.resultGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.glowTag{display:inline-block;padding:8px 12px;background:linear-gradient(135deg,rgba(243,201,91,.16),rgba(107,179,255,.12));border:1px solid rgba(243,201,91,.22);font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.vibrant{background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(236,72,153,.10),rgba(251,146,60,.08))}
+.meterTiny{height:8px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.06);margin-top:6px}
+.meterTiny span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--blue),var(--gold))}
+@media (max-width:900px){.rewardBar,.resultGrid{grid-template-columns:1fr}}
+
+
+.bidNameFrame{
+  margin-top:12px;
+  min-height:92px;
+  padding:18px 22px;
+  border:2px solid rgba(243,201,91,.52);
+  background:linear-gradient(135deg,rgba(243,201,91,.22),rgba(107,179,255,.12),rgba(0,0,0,.16));
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    0 10px 24px rgba(0,0,0,.18);
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  overflow:hidden;
+  border-radius:4px;
+}
+.bidNameFrame .flash{
+  margin:0;
+  width:100%;
+  font-size:2.35rem;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-shadow:0 2px 10px rgba(0,0,0,.35);
+  letter-spacing:.4px;
+  color:#f8fbff;
+  font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  display:block;
+}
+
+
+.bidNameText{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  font-family:Inter,system-ui,Arial,sans-serif;
+  font-size:2rem;
+  font-weight:900;
+  line-height:1.15;
+  color:#ffffff;
+  letter-spacing:.2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-shadow:0 2px 10px rgba(0,0,0,.35);
+  transform:translateY(4px);
+}
+
+
+.creditBox{
+  max-width:1320px;
+  margin:18px auto 0;
+  padding:18px 22px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(135deg,rgba(107,179,255,.10),rgba(243,201,91,.08),rgba(236,72,153,.06));
+  box-shadow:0 12px 28px rgba(0,0,0,.16);
+}
+.creditTitle{
+  font-size:.82rem;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:#cfe0f7;
+  margin-bottom:10px;
+}
+.creditGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px 18px;
+}
+.creditItem{
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+}
+.creditItem b{
+  color:#fff;
+}
+@media (max-width:900px){
+  .creditGrid{grid-template-columns:1fr}
+}
+
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><small>Indian Premier League</small><strong>IPL WCC 3 Simulator 2026</strong></div>
+  <div class="actions">
+    <button class="secondary" id="openTutorialBtn">Guide</button>
+    <button class="secondary" id="chooseTeamBtn">Choose Team</button>
+    <button class="secondary" id="saveBtn">Save</button>
+    <button class="secondary" id="loadBtn">Load</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+</div>
+
+<div class="creditBox">
+  <div class="creditTitle">Project Credits</div>
+  <div class="creditGrid">
+    <div class="creditItem"><b>Coded by:</b> Om Rai</div>
+    <div class="creditItem"><b>Designed by:</b> Om Rai</div>
+    <div class="creditItem"><b>Tested by:</b> Aditya Singh, Akshat Thakur, Arnav Sinha</div>
+    <div class="creditItem"><b>Published by:</b> Aditya Singh</div>
+  </div>
+</div>
+
+<div class="app">
+  <section class="screen active" id="startScreen">
+    <div class="hero">
+      <div class="panel heroBanner"><div class="heroInner"><div class="pill">Clean Rebuild</div><div class="big">Auction. Toss. Play.</div><p class="small" style="margin-top:18px;max-width:58ch">Fresh stable rebuild. Team selection works, auction bid room works, 1…2…3… SOLD works, and the Play tab has interactive toss plus batting and bowling action buttons.</p></div></div>
+      <div class="panel"><div class="stats"><div class="stat"><div class="k">Mode</div><div class="v">Desktop</div></div><div class="stat"><div class="k">Auction Pool</div><div class="v">22</div></div><div class="stat"><div class="k">Purse</div><div class="v">300 Cr</div></div><div class="stat"><div class="k">Core</div><div class="v">Stable</div></div></div></div>
+    </div>
+    <div class="panel" style="margin-top:20px"><div class="sectionHead"><div><h2 style="margin:0;text-transform:uppercase;letter-spacing:1px">Choose Your Team</h2><p class="small" style="margin-top:8px">This screen stays available. You can return here any time from the top bar.</p></div></div><div class="teamGrid" id="teamGrid"></div></div>
+  </section>
+
+  <section class="screen" id="gameScreen">
+    <div class="nav">
+      <button class="active" data-tab="dashboard">Home</button>
+      <button data-tab="auction">Auction</button>
+      <button data-tab="squad">Squad</button>
+      <button data-tab="play">Play</button>
+      <button data-tab="table">Table</button>
+    </div>
+    <div class="screen active" id="dashboardTab">
+      <div class="grid2">
+        <div class="panel"><div class="sectionHead"><div><h2 id="dashTitle" style="margin:0"></h2><p id="dashSub" class="small" style="margin-top:8px"></p></div><button class="primary" id="startAuctionSequenceBtn">Start Auction Sequence</button></div><div class="simProgress" style="margin-top:14px"><span id="seasonFill"></span></div><div class="small" id="seasonMeta" style="margin-top:8px"></div><div class="cards4" style="margin-top:18px"><div class="stat vibrant"><div class="k">Purse</div><div class="v" id="purseStat"></div></div><div class="stat vibrant"><div class="k">Squad</div><div class="v" id="squadStat"></div></div><div class="stat vibrant"><div class="k">Played</div><div class="v" id="playedStat"></div></div><div class="stat vibrant"><div class="k">Points</div><div class="v" id="pointsStat"></div></div></div><div class="rewardBar"><div class="rewardCard"><div class="k">Level</div><div class="v" id="levelStat"></div></div><div class="rewardCard"><div class="k">XP</div><div class="v" id="xpStat"></div><div class="meterTiny"><span id="xpFill" style="width:0%"></span></div></div><div class="rewardCard"><div class="k">Coins</div><div class="v" id="coinsStat"></div></div></div></div>
+        <div class="panel"><h2 style="margin:0;text-transform:uppercase">Live Feed</h2><div class="list" id="eventFeed" style="margin-top:14px"></div></div>
+      </div>
+    </div>
+    <div class="screen" id="auctionTab">
+      <div class="grid2">
+        <div class="panel"><div class="sectionHead"><div><h2 style="margin:0;text-transform:uppercase">Auction Market</h2><p class="small" style="margin-top:8px">Open the bid room and let the auctioneer run. No repeats. Ends after 22 players are processed.</p></div><div class="pill" id="auctionInfo"></div></div><div class="simProgress" style="margin-top:14px"><span id="auctionFill"></span></div><div class="small" id="auctionMeta" style="margin-top:8px"></div><div class="line" style="margin-top:14px"><button class="primary" id="openBidRoomBtn">Open Bid Room</button><button class="secondary" id="nextBidPlayerBtn">Next Player</button><button class="secondary" id="resetAuctionBtn">Reset Auction</button></div><div class="list" id="auctionList" style="margin-top:16px"></div></div>
+        <div class="panel"><h2 style="margin:0;text-transform:uppercase">Auction Notes</h2><div class="list" style="margin-top:14px"><div class="card">Popup opens one player at a time.</div><div class="card">If nobody raises above base, the auctioneer counts down and passes the player automatically.</div><div class="card">Any fresh bid resets the countdown.</div><div class="card">Bought and skipped players are removed permanently. No repeat loop.</div></div></div>
+      </div>
+    </div>
+    <div class="screen" id="squadTab">
+      <div class="grid2">
+        <div class="panel"><div class="sectionHead"><h2 style="margin:0;text-transform:uppercase">Squad</h2><button id="autoPickBtn">Auto Pick XI</button></div><div class="list" id="squadList" style="margin-top:14px"></div></div>
+        <div class="panel"><h2 style="margin:0;text-transform:uppercase">Starting XI</h2><div class="list" id="xiList" style="margin-top:14px"></div></div>
+      </div>
+    </div>
+    <div class="screen" id="playTab">
+      <div class="grid2">
+        <div class="panel"><div class="sectionHead"><div><h2 style="margin:0;text-transform:uppercase">Play Tab</h2><p class="small" id="playMeta" style="margin-top:8px"></p></div><div class="actions"><button class="primary" id="openTossBtn">Start Toss</button><button class="secondary" id="autoPlayBtn">Auto Play</button></div></div><div class="scoreBox" id="playBoard" style="margin-top:16px"></div><div id="statusStrip"></div><div id="interactiveArea"></div></div>
+        <div class="panel"><h2 style="margin:0;text-transform:uppercase">Commentary</h2><div class="commentary" id="commentaryBox" style="margin-top:14px"></div></div></div>
+      </div>
+    </div>
+    <div class="screen" id="tableTab"><div class="panel"><h2 style="margin:0;text-transform:uppercase">Points Table</h2><table style="margin-top:12px"><thead><tr><th>#</th><th>Team</th><th>M</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th></tr></thead><tbody id="tableBody"></tbody></table></div></div>
+  </section>
+</div>
+
+<div class="auctionOverlay" id="sequenceOverlay"><div class="overlayBox" style="max-width:760px;text-align:center"><div class="pill">Auction Sequence</div><div class="flash" id="sequenceFlash" style="margin-top:18px">READY</div><div class="simProgress" style="margin-top:18px;height:14px"><span id="sequenceFill"></span></div><p class="small" id="sequenceText" style="margin-top:14px">Sound and animation are active.</p><div class="line" style="justify-content:center;margin-top:16px"><button id="closeSequenceBtn">Close</button></div></div></div>
+
+<div class="auctionOverlay" id="bidOverlay"><div class="overlayBox"><div class="line" style="align-items:flex-start"><div style="flex:1 1 68%;min-width:0"><div class="pill">Live Auction Pop-up</div><div class="bidNameFrame"><div class="bidNameText" id="bidName" aria-label="Auction player name">Player</div></div><div class="small" id="bidMeta" style="margin-top:12px;color:#d7e2f2"></div></div><div style="text-align:right;flex:0 0 auto"><div class="small">Your Purse</div><div class="flash" id="bidPurse" style="font-size:2rem;margin-top:6px"></div></div></div><div class="grid2" style="margin-top:18px"><div><div class="cards4"><div class="stat"><div class="k">OVR</div><div class="v" id="bidOvr"></div></div><div class="stat"><div class="k">Form</div><div class="v" id="bidForm"></div></div><div class="stat"><div class="k">Fitness</div><div class="v" id="bidFitness"></div></div><div class="stat"><div class="k">Potential</div><div class="v" id="bidPotential"></div></div></div><div class="countBox" style="margin-top:14px"><div class="line"><b>Current Bid</b><div class="small" id="bidBaseText"></div></div><div class="flash" id="bidValue" style="margin-top:8px;font-size:2.4rem"></div><div class="simProgress" style="margin-top:10px"><span id="bidFill"></span></div><div class="flash" id="countdownDisplay" style="margin-top:12px;font-size:2rem;color:var(--gold)">WAITING</div></div></div><div><div class="small" style="margin-bottom:10px">Increase bid</div><div class="bidButtons"><button class="stepBtn" data-step="0.5">+0.5 Cr</button><button class="stepBtn" data-step="1">+1 Cr</button><button class="stepBtn" data-step="2">+2 Cr</button><button class="stepBtn" data-step="5">+5 Cr</button><button class="stepBtn" data-step="10">+10 Cr</button><button class="stepBtn" data-step="20">+20 Cr</button></div><div class="line" style="margin:14px 0 10px"><b>Control</b><div class="small" id="bidStatus">Your move</div></div><div class="bidButtons"><button id="aiBidBtn">AI Counter</button><button class="primary" id="buyPlayerBtn">Confirm Buy</button><button class="secondary" id="passPlayerBtn">Pass</button><button class="secondary" id="closeBidBtn">Close</button></div><div class="commentary" id="bidLog" style="margin-top:14px;min-height:220px"></div></div></div></div></div>
+
+<div class="tossOverlay" id="tossOverlay"><div class="overlayBox" style="max-width:980px"><div class="pill">Live Toss</div><div class="tossStage" style="margin-top:18px"><div class="card"><div id="tossBadgeA"></div><div class="flash" id="tossTeamA" style="font-size:1.6rem;margin-top:12px"></div><div class="small">Captain call</div><div class="line" style="justify-content:center;margin-top:14px"><button id="headsBtn">Heads</button><button id="tailsBtn">Tails</button></div></div><div><div class="coin" id="coin">TOSS</div><div class="vs" style="margin-top:14px">VS</div><div class="small" id="tossStatus" style="margin-top:12px">Choose heads or tails.</div><div class="line" style="justify-content:center;margin-top:14px;display:none" id="batBowlBox"><button id="chooseBatBtn">Bat First</button><button id="chooseBowlBtn">Bowl First</button></div></div><div class="card"><div id="tossBadgeB"></div><div class="flash" id="tossTeamB" style="font-size:1.6rem;margin-top:12px"></div><div class="small">Opponent captain</div><div class="line" style="justify-content:center;margin-top:14px"><button class="secondary" id="closeTossBtn">Close</button></div></div></div></div></div>
+
+
+
+<div class="tutorialOverlay" id="tutorialOverlay">
+  <div class="tutorialBox">
+    <div class="pill">Quick Tutorial</div>
+    <div class="flash" style="font-size:2rem;margin-top:10px">How To Play</div>
+    <p class="small" style="margin-top:10px">Simple guide so the user can remember where to click and interact.</p>
+    <div class="tutorialGrid">
+      <div class="tutorialStep"><div class="tutorialStepNum">1</div><b>Choose Team</b><div class="small" style="margin-top:8px">Click any <b>Select Team</b> card on the first screen.</div></div>
+      <div class="tutorialStep"><div class="tutorialStepNum">2</div><b>Open Auction</b><div class="small" style="margin-top:8px">Go to <b>Auction</b> and click <b>Open Bid Room</b>.</div></div>
+      <div class="tutorialStep"><div class="tutorialStepNum">3</div><b>Build XI</b><div class="small" style="margin-top:8px">Go to <b>Squad</b> and make your XI or use <b>Auto Pick XI</b>.</div></div>
+      <div class="tutorialStep"><div class="tutorialStepNum">4</div><b>Play Match</b><div class="small" style="margin-top:8px">Use <b>Play</b>, start the toss, then interact ball by ball.</div></div>
+      <div class="tutorialStep"><div class="tutorialStepNum">5</div><b>Status</b><div class="small" style="margin-top:8px">Watch batting, bowling, score and commentary updates.</div></div>
+      <div class="tutorialStep"><div class="tutorialStepNum">6</div><b>Close Guide</b><div class="small" style="margin-top:8px">Use <b>Close Guide</b> or <b>Maybe Later</b>. Reopen anytime with the <b>Guide</b> button.</div></div>
+    </div>
+    <div class="tutorialFooter">
+      <div class="small">This guide appears on file open.</div>
+      <div class="actions">
+        <button class="secondary" id="tutorialLaterBtn" type="button">Maybe Later</button>
+        <button class="primary" id="tutorialCloseBtn" type="button">Close Guide</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="resultOverlay" id="resultOverlay">
+  <div class="resultBox">
+    <div class="pill">Match Result</div>
+    <div class="flash" id="resultTitle" style="font-size:2.2rem;margin-top:10px">Match Complete</div>
+    <div class="small" id="resultSub" style="margin-top:10px"></div>
+    <div class="resultGrid">
+      <div class="stat vibrant"><div class="k">Winner</div><div class="v" id="resultWinner">-</div></div>
+      <div class="stat vibrant"><div class="k">Scoreline</div><div class="v" id="resultScore">-</div></div>
+      <div class="stat vibrant"><div class="k">Rewards</div><div class="v" id="resultRewards">+0 XP</div></div>
+    </div>
+    <div class="rewardBar">
+      <div class="rewardCard"><div class="k">Top Batter</div><div class="v" id="resultTopBatter">-</div></div>
+      <div class="rewardCard"><div class="k">Top Bowler</div><div class="v" id="resultTopBowler">-</div></div>
+      <div class="rewardCard"><div class="k">Level Progress</div><div class="v" id="resultLevel">Level 1</div></div>
+    </div>
+    <div class="line" style="margin-top:18px"><span class="glowTag">Awesome screen unlocked</span><button class="primary" id="closeResultBtn" type="button">Close Result</button></div>
+  </div>
+</div>
+
+<script>
+const TEAMS=[{code:'MI',name:'Mumbai Indians',fanBase:88,pressure:86,style:'Power-packed batting and massive expectations'},{code:'CSK',name:'Chennai Super Kings',fanBase:92,pressure:90,style:'Veteran calm and title mentality'},{code:'RCB',name:'Royal Challengers Bengaluru',fanBase:95,pressure:95,style:'Huge hype and explosive batting'},{code:'KKR',name:'Kolkata Knight Riders',fanBase:84,pressure:80,style:'Dynamic hitters and mystery spin'},{code:'GT',name:'Gujarat Titans',fanBase:72,pressure:70,style:'Balanced and efficient unit'},{code:'RR',name:'Rajasthan Royals',fanBase:73,pressure:68,style:'Young fearless core'},{code:'DC',name:'Delhi Capitals',fanBase:74,pressure:72,style:'Fast-paced squad seeking consistency'},{code:'PBKS',name:'Punjab Kings',fanBase:71,pressure:74,style:'Chaotic power game'},{code:'SRH',name:'Sunrisers Hyderabad',fanBase:78,pressure:77,style:'Aggressive top order and pace'},{code:'LSG',name:'Lucknow Super Giants',fanBase:69,pressure:66,style:'Analytical and balanced'}];
+const STYLE_MAP={MI:'linear-gradient(135deg,#1d4ed8,#60a5fa)',CSK:'linear-gradient(135deg,#f59e0b,#fde047)',RCB:'linear-gradient(135deg,#111827,#d4af37)',KKR:'linear-gradient(135deg,#4c1d95,#facc15)',GT:'linear-gradient(135deg,#0f172a,#eab308)',RR:'linear-gradient(135deg,#ec4899,#f9a8d4)',DC:'linear-gradient(135deg,#1d4ed8,#ef4444)',PBKS:'linear-gradient(135deg,#dc2626,#fca5a5)',SRH:'linear-gradient(135deg,#f97316,#ef4444)',LSG:'linear-gradient(135deg,#0284c7,#7dd3fc)'};
+const STAR_POOL=[['Ruturaj Gaikwad','BAT',89,false,28,9.0],['MS Dhoni','WK',82,false,44,5.0],['Ravindra Jadeja','AR',90,false,37,14.0],['Jasprit Bumrah','BOWL',94,false,32,18.0],['Suryakumar Yadav','BAT',92,false,35,17.0],['Hardik Pandya','AR',91,false,32,16.0],['Virat Kohli','BAT',95,false,37,20.0],['Rajat Patidar','BAT',84,false,32,8.0],['Cameron Green','AR',86,true,27,12.0],['Sunil Narine','AR',89,true,38,13.0],['Andre Russell','AR',90,true,38,14.0],['Venkatesh Iyer','AR',84,false,31,7.5],['Shubman Gill','BAT',93,false,27,18.0],['Rashid Khan','BOWL',92,true,28,17.0],['Sai Sudharsan','BAT',86,false,24,9.0],['Sanju Samson','WK',90,false,31,16.0],['Yashasvi Jaiswal','BAT',91,false,24,15.0],['Axar Patel','AR',88,false,32,12.0],['KL Rahul','WK',89,false,34,13.0],['Mitchell Starc','BOWL',90,true,36,15.0],['Kuldeep Yadav','BOWL',88,false,31,11.0],['Sam Curran','AR',87,true,28,10.0]];
+let state=null,audioCtx=null,currentBidId=null,currentBid=0,bidCountdownTimer=null,bidCountdownStep=0,bidFinalizing=false,matchState=null,voiceEnabled=true,voiceMode='energetic',voiceFlashTimer=null,lastSpokenCommentary='';
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,pick=a=>a[Math.floor(Math.random()*a.length)],money=n=>`₹${Number(n).toFixed(1)} Cr`;
+function initials(name){return name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase()}
+function avatarStyle(name){const palette=['#2563eb','#7c3aed','#db2777','#ea580c','#059669','#dc2626','#0284c7','#9333ea'];let sum=0;for(const ch of name) sum+=ch.charCodeAt(0);const c1=palette[sum%palette.length], c2=palette[(sum+3)%palette.length];return `background:linear-gradient(135deg,${c1},${c2})`}
+function roleType(role){if(role==='BAT') return pick(['Anchor','Aggressor','Finisher']); if(role==='BOWL') return pick(['Pacer','Swing','Spinner']); if(role==='AR') return pick(['Seam AR','Spin AR','Power AR']); return pick(['Keeper','Keeper-Bat']);}
+function rewardForWin(win){return win?{xp:120,coins:90}:{xp:55,coins:30}}
+function currentLevel(xp){return Math.floor(xp/250)+1}
+
+function ensureAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}}
+function tone(freq=440,duration=.08,type='sine',gain=.03){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(gain,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration)}
+function sfx(kind){ensureAudio();if(!audioCtx)return;if(kind==='tick'){tone(620,.05,'square',.028);setTimeout(()=>tone(760,.05,'square',.02),45)}if(kind==='whoosh'){tone(220,.12,'sawtooth',.03);setTimeout(()=>tone(440,.14,'sawtooth',.02),70)}if(kind==='start'){tone(440,.08,'triangle',.035);setTimeout(()=>tone(660,.08,'triangle',.03),80);setTimeout(()=>tone(880,.11,'triangle',.025),170)}if(kind==='buy'){tone(540,.07,'triangle',.03);setTimeout(()=>tone(780,.09,'triangle',.025),60)}if(kind==='count'){tone(520,.06,'square',.03)}if(kind==='sold'){tone(420,.08,'triangle',.035);setTimeout(()=>tone(610,.09,'triangle',.03),90);setTimeout(()=>tone(820,.12,'triangle',.028),180)}}
+function showVoiceFlash(text, sub='AI Commentary'){ return; }
+function getVoiceUtterance(line){
+  const u = new SpeechSynthesisUtterance(line);
+  const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  const english = voices.find(v => /en-IN|en_GB|en-US|English/i.test(v.lang + ' ' + v.name)) || voices[0];
+  if(english) u.voice = english;
+  if(voiceMode==='energetic'){ u.rate = 1.08; u.pitch = 1.08; u.volume = 1; }
+  if(voiceMode==='analyst'){ u.rate = 0.92; u.pitch = 0.95; u.volume = 0.96; }
+  if(voiceMode==='stadium'){ u.rate = 1.16; u.pitch = 1.12; u.volume = 1; }
+  return u;
+}
+function speakLine(line, flash=line, sub='AI Commentary'){
+  if(!voiceEnabled || !('speechSynthesis' in window) || !line) return;
+  lastSpokenCommentary = line;
+  try{
+    window.speechSynthesis.cancel();
+    showVoiceFlash(flash, sub);
+    window.speechSynthesis.speak(getVoiceUtterance(line));
+  }catch(e){}
+}
+function modeLabel(){
+  return voiceMode==='energetic' ? 'Energetic Hinglish' : voiceMode==='analyst' ? 'Calm Analyst' : 'Hype Stadium';
+}
+function updateVoiceUI(){ return; }
+function commentaryLine(kind, detail=''){
+  if(kind==='auction_start') return {s:'Auction room is now live. Chaliye shuru karte hain bidding!', f:'Auction Live!', sub:'AI Auction Voice'};
+  if(kind==='bid_up') return {s:`What a jump in price. Bid climbs to ${detail}!`, f:`Bid ${detail}`, sub:'AI Auction Voice'};
+  if(kind==='ai_bid') return {s:`Another franchise joins the fight. Price now ${detail}!`, f:`Counter Bid ${detail}`, sub:'AI Auction Voice'};
+  if(kind==='count_1') return {s:'Going once...', f:'1...', sub:'AI Auction Voice'};
+  if(kind==='count_2') return {s:'Going twice...', f:'2...', sub:'AI Auction Voice'};
+  if(kind==='count_3') return {s:'Last chance now...', f:'3...', sub:'AI Auction Voice'};
+  if(kind==='sold') return {s:'Sold! Kya zabardast bidding thi.', f:'Sold!', sub:'AI Auction Voice'};
+  if(kind==='pass') return {s:'No takers. Moving to the next player.', f:'No Bid', sub:'AI Auction Voice'};
+  if(kind==='toss_start') return {s:'Captains are ready. Toss time!', f:'Toss Time', sub:'AI Match Voice'};
+  if(kind==='heads') return {s:'The captain calls heads.', f:'Heads!', sub:'AI Match Voice'};
+  if(kind==='tails') return {s:'The captain calls tails.', f:'Tails!', sub:'AI Match Voice'};
+  if(kind==='bat_first') return {s:'They have chosen to bat first. Bold move.', f:'Bat First', sub:'AI Match Voice'};
+  if(kind==='bowl_first') return {s:'They have chosen to bowl first. Pressure straight away.', f:'Bowl First', sub:'AI Match Voice'};
+  if(kind==='single') return {s:'Nicely worked away for a single.', f:'1 Run', sub:'AI Match Voice'};
+  if(kind==='double') return {s:'Good running between the wickets. Two more.', f:'2 Runs', sub:'AI Match Voice'};
+  if(kind==='four') return {s:'What a shot! That is four!', f:'FOUR!', sub:'AI Match Voice'};
+  if(kind==='six') return {s:'That has gone miles. Massive six!', f:'SIX!', sub:'AI Match Voice'};
+  if(kind==='dot') return {s:'Tight bowling. Dot ball.', f:'DOT BALL', sub:'AI Match Voice'};
+  if(kind==='wicket') return {s:'In the air... taken! That is a wicket!', f:'WICKET!', sub:'AI Match Voice'};
+  if(kind==='boundary_conceded') return {s:'Punished away to the fence. That is four.', f:'BOUNDARY', sub:'AI Match Voice'}; if(kind==='wide') return {s:'That is a wide. Extra run gifted away.', f:'WIDE', sub:'AI Match Voice'}; if(kind==='noball') return {s:'No ball called. Free run and pressure.', f:'NO BALL', sub:'AI Match Voice'}; if(kind==='three') return {s:'Super running. They come back for three.', f:'3 RUNS', sub:'AI Match Voice'};
+  if(kind==='innings_break') return {s:`End of the innings. Target is ${detail}.`, f:`Target ${detail}`, sub:'AI Match Voice'};
+  if(kind==='match_win') return {s:`Match over. ${detail} have won the game!`, f:`${detail} Win`, sub:'AI Match Voice'};
+  return {s:detail || 'Cricket action underway.', f:'Action', sub:'AI Commentary'};
+}
+function speakByKind(kind, detail=''){
+  const line = commentaryLine(kind, detail);
+  speakLine(line.s, line.f, line.sub);
+}
+
+function badgeHTML(team){return `<div class="teamBadge" style="background:${STYLE_MAP[team.code]||'linear-gradient(135deg,#374151,#9ca3af)'}">${team.code}</div>`}
+function starToPlayer(entry){const[name,role,rating,overseas,age,price]=entry;return{id:Math.random().toString(36).slice(2,10),name,role,rating,overseas,age,price,form:rand(68,96),fitness:rand(75,100),potential:Math.min(99,rating+rand(1,6)),recent:rand(0,100),skill:roleType(role),handling:rand(60,96),avatar:initials(name),xi:false,captain:false,boughtFor:null,season:{runs:0,wickets:0,matches:0}}}
+function baseSquad(teamCode){const rolePlan=[['BAT',4],['WK',1],['AR',2],['BOWL',4]],players=[];rolePlan.forEach(([role,count])=>{for(let i=0;i<count;i++)players.push({id:Math.random().toString(36).slice(2,10),name:`${teamCode} Player ${role[0]}${i+1}`,role,rating:rand(74,88),overseas:false,age:rand(22,34),form:rand(60,90),fitness:rand(72,100),potential:rand(80,94),recent:rand(0,100),skill:roleType(role),handling:rand(58,92),avatar:initials(`${teamCode} ${role[0]}${i+1}`),xi:false,captain:false,boughtFor:null,season:{runs:0,wickets:0,matches:0}})});players[0].captain=true;return players}
+function createFixtures(user){return TEAMS.filter(t=>t.code!==user).slice(0,6).map((t,i)=>({id:Math.random().toString(36).slice(2,10),opp:t.code,played:false,result:null,userRuns:0,oppRuns:0,day:i+1}))}
+function createState(teamCode){const squads={};TEAMS.forEach(t=>squads[t.code]=baseSquad(t.code));squads[teamCode]=[];const table={};TEAMS.forEach(t=>table[t.code]={m:0,w:0,l:0,pts:0,nrr:0});currentBidId=null;currentBid=0;clearBidCountdown();bidFinalizing=false;matchState=null;return{user:teamCode,purse:300,auction:STAR_POOL.map(starToPlayer),squads,fixtures:createFixtures(teamCode),events:[`Selected team: ${teamCode}.`,'Auction room is ready.','Open Bid Room to begin.'],table,currentMatch:null,progress:{xp:0,coins:0,level:1,rewards:['Starter Badge']}}}
+function saveState(){localStorage.setItem('ipl_wcc3_clean_rebuild_2026',JSON.stringify(state))}
+function loadState(){const raw=localStorage.getItem('ipl_wcc3_clean_rebuild_2026');if(!raw)return false;state=JSON.parse(raw);matchState=null;showGame();return true}
+function pushEvent(text){if(!state)return;state.events.unshift(text);state.events=state.events.slice(0,14)}
+
+function openTutorial(){
+  const overlay = document.getElementById('tutorialOverlay');
+  if(overlay){
+    overlay.style.display = 'flex';
+    overlay.classList.remove('hidden');
+  }
+}
+function closeTutorial(){
+  const overlay = document.getElementById('tutorialOverlay');
+  if(overlay){
+    overlay.style.display = 'none';
+    overlay.classList.add('hidden');
+  }
+}
+
+function renderTeams(){const grid=document.getElementById('teamGrid');grid.innerHTML='';TEAMS.forEach(team=>{const d=document.createElement('div');d.className='teamCard';d.innerHTML=`${badgeHTML(team)}<h3 style="margin:12px 0 0;text-transform:uppercase">${team.name}</h3><p class="small" style="margin-top:10px">${team.style}</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><span class="badge blue">Fans ${team.fanBase}</span><span class="badge red">Pressure ${team.pressure}</span></div><button class="primary" style="margin-top:16px;width:100%">Select Team</button>`;d.onclick=()=>{state=createState(team.code);saveState();showGame()};grid.appendChild(d)})}
+function showStart(){document.getElementById('startScreen').classList.add('active');document.getElementById('gameScreen').classList.remove('active');renderTeams()}
+function showGame(){document.getElementById('startScreen').classList.remove('active');document.getElementById('gameScreen').classList.add('active');switchTab('dashboard')}
+function switchTab(tab){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['dashboard','auction','squad','play','table'].forEach(name=>document.getElementById(name+'Tab').classList.toggle('active',name===tab));renderAll()}
+function renderDashboard(){const team=TEAMS.find(t=>t.code===state.user),played=state.fixtures.filter(f=>f.played).length;dashTitle.textContent=`${team.name} • ${team.code}`;dashSub.textContent='Stable rebuild • vibrant visuals • rewards • smarter play engine';seasonFill.style.width=Math.max(4,Math.round((played/Math.max(1,state.fixtures.length))*100))+'%';seasonMeta.textContent=`${played} / ${state.fixtures.length} matches completed`;purseStat.textContent=money(state.purse);squadStat.textContent=state.squads[state.user].length;playedStat.textContent=played;pointsStat.textContent=state.table[state.user].pts;levelStat.textContent='Lv. '+(state.progress?.level||1);xpStat.textContent=(state.progress?.xp||0)+' XP';coinsStat.textContent=(state.progress?.coins||0)+' Coins';xpFill.style.width=((state.progress?.xp||0)%250)/2.5+'%';eventFeed.innerHTML='';state.events.forEach(e=>{const d=document.createElement('div');d.className='card vibrant';d.textContent=e;eventFeed.appendChild(d)})}
+function renderAuction(){auctionInfo.textContent=`Pool ${state.auction.length} • Purse ${money(state.purse)}`;auctionFill.style.width=Math.max(2,Math.round((state.squads[state.user].length/22)*100))+'%';auctionMeta.textContent=`${state.squads[state.user].length} bought • ${state.auction.length} left`;auctionList.innerHTML='';state.auction.slice(0,8).forEach(p=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<div class="playerRow"><div class="avatar" style="${avatarStyle(p.name)}">${p.avatar}</div><div><b>${p.name}</b><div class="small" style="margin-top:6px">${p.role} • ${p.skill} • Age ${p.age} • ${p.overseas?'Overseas':'Indian'}</div></div><div style="text-align:right"><span class="badge gold">OVR ${p.rating}</span><div class="small" style="margin-top:8px">Base ${money(p.price)}</div></div></div><div class="simProgress" style="margin-top:12px"><span style="width:${p.rating}%"></span></div><div class="line" style="margin-top:12px"><div class="small">Form ${p.form} • Recent ${p.recent} • Handling ${p.handling}</div><button data-id="${p.id}">Bid</button></div>`;d.querySelector('button').onclick=()=>openBidRoom(p.id);auctionList.appendChild(d)})}
+function renderSquad(){squadList.innerHTML='';xiList.innerHTML='';const squad=[...state.squads[state.user]].sort((a,b)=>b.rating-a.rating);squad.forEach(p=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<div class="playerRow"><div class="avatar small" style="${avatarStyle(p.name)}">${p.avatar}</div><div><b>${p.name}</b> ${p.captain?'<span class="badge gold">C</span>':''} ${p.xi?'<span class="badge green">XI</span>':''}<div class="small" style="margin-top:6px">${p.role} • ${p.skill} • Age ${p.age}</div></div><div style="text-align:right"><span class="badge gold">OVR ${p.rating}</span><div class="small" style="margin-top:8px">${p.boughtFor?`Bought ${money(p.boughtFor)}`:'Base squad'}</div></div></div><div class="line" style="margin-top:12px"><div class="small">Form ${p.form} • Recent ${p.recent} • Handling ${p.handling}</div><div class="actions"><button data-xi="${p.id}">${p.xi?'Remove XI':'Add XI'}</button><button class="secondary" data-cap="${p.id}">Captain</button></div></div>`;d.querySelector('[data-xi]').onclick=()=>toggleXI(p.id);d.querySelector('[data-cap]').onclick=()=>setCaptain(p.id);squadList.appendChild(d)});squad.filter(p=>p.xi).forEach(p=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<b>${p.name}</b> <span class="small">${p.role} • OVR ${p.rating}</span> ${p.captain?'<span class="badge gold">Captain</span>':''}`;xiList.appendChild(d)});if(!squad.filter(p=>p.xi).length)xiList.innerHTML='<div class="card">No XI selected.</div>'}
+function toggleXI(id){const p=state.squads[state.user].find(x=>x.id===id);if(!p)return;const count=state.squads[state.user].filter(x=>x.xi).length;if(!p.xi&&count>=11)return alert('XI already full');p.xi=!p.xi;saveState();renderSquad()}
+function setCaptain(id){state.squads[state.user].forEach(p=>p.captain=false);const p=state.squads[state.user].find(x=>x.id===id);if(p){p.captain=true;p.xi=true}saveState();renderSquad()}
+function autoPickXI(){state.squads[state.user].forEach(p=>{p.xi=false;p.captain=false});state.squads[state.user].sort((a,b)=>b.rating-a.rating).slice(0,11).forEach((p,i)=>{p.xi=true;p.captain=i===0});pushEvent('Auto-picked the strongest XI.');saveState();renderAll()}
+function clearBidCountdown(){if(bidCountdownTimer){clearInterval(bidCountdownTimer);bidCountdownTimer=null}bidCountdownStep=0;countdownDisplay.textContent='WAITING'}
+function getBidPlayer(){return state.auction.find(p=>p.id===currentBidId)||null}
+function addBidLog(text){const d=document.createElement('div');d.className='item';d.textContent=text;bidLog.appendChild(d)}
+function renderBidRoom(){const p=getBidPlayer();if(!p)return;bidName.textContent=p.name;bidMeta.textContent=`${p.role} • ${p.skill} • Age ${p.age} • ${p.overseas?'Overseas':'Indian'} player`;bidOvr.textContent=p.rating;bidForm.textContent=p.form;bidFitness.textContent=p.fitness;bidPotential.textContent=p.potential;bidPurse.textContent=money(state.purse);bidValue.classList.add('shotPulse');setTimeout(()=>bidValue.classList.remove('shotPulse'),220);bidBaseText.textContent=`Base ${money(p.price)}`;bidValue.textContent=money(currentBid);bidFill.style.width=Math.max(5,Math.min(100,Math.round((currentBid/Math.max(1,state.purse))*100)))+'%';bidStatus.textContent=currentBid<=state.purse?'Your move':'Bid above purse'}
+function finishAuctionIfNeeded(){if(state.auction.length===0){clearBidCountdown();bidOverlay.classList.remove('show');pushEvent('Auction ended. All 22 players have been processed.');saveState();renderAll();return true}return false}
+function startBidCountdown(){clearBidCountdown();if(bidFinalizing)return;bidCountdownStep=0;const beats=['1...','2...','3...','SOLD!'];bidCountdownTimer=setInterval(()=>{const p=getBidPlayer();if(!p||bidFinalizing){clearBidCountdown();return}const beat=beats[bidCountdownStep];countdownDisplay.textContent=beat;bidStatus.textContent=beat;addBidLog(`Auctioneer: ${beat}`);sfx(bidCountdownStep<3?'count':'sold'); if(bidCountdownStep===0)speakByKind('count_1'); if(bidCountdownStep===1)speakByKind('count_2'); if(bidCountdownStep===2)speakByKind('count_3'); if(bidCountdownStep===3)speakByKind('sold');bidCountdownStep+=1;if(bidCountdownStep>=4){clearBidCountdown();bidFinalizing=true;if(currentBid>Number(p.price.toFixed(1))){setTimeout(confirmBuy,120)}else{addBidLog(`No valid bid locked for ${p.name}. Auctioneer moves on.`);setTimeout(()=>passPlayer(true),120)}}},850)}
+function restartBidCountdown(){startBidCountdown()}
+function openBidRoom(playerId=null){if(!state){alert('Choose a team first.');return}if(finishAuctionIfNeeded())return;if(bidFinalizing)return;const p=playerId?state.auction.find(x=>x.id===playerId):state.auction[0];if(!p){finishAuctionIfNeeded();return}currentBidId=p.id;currentBid=Number(p.price.toFixed(1));bidOverlay.classList.add('show');bidLog.innerHTML=`<div class="item">Auctioneer: ${p.name} enters the room at base ${money(currentBid)}.</div>`;renderBidRoom();sfx('start');startBidCountdown()}
+function increaseBid(step){if(bidFinalizing)return;const p=getBidPlayer();if(!p)return;const next=Number((currentBid+step).toFixed(1));if(next>state.purse){addBidLog(`Not enough purse for ${money(next)}.`);sfx('tick');return}currentBid=next;renderBidRoom();addBidLog(`You raised the bid to ${money(currentBid)}.`);sfx('tick');speakByKind('bid_up', money(currentBid));restartBidCountdown()}
+function aiCounter(){if(bidFinalizing)return;const p=getBidPlayer();if(!p)return;const opts=[.5,1,2,5,10],step=pick(opts),limit=Number((p.price*(1.6+Math.random()*1.8)).toFixed(1));if(currentBid+step<=limit&&currentBid+step<=state.purse){currentBid=Number((currentBid+step).toFixed(1));renderBidRoom();addBidLog(`Rival franchise pushes it to ${money(currentBid)}.`);sfx('whoosh');speakByKind('ai_bid', money(currentBid));restartBidCountdown()}else{addBidLog('Rival franchise pauses. Bid stands.');sfx('tick')}}
+function confirmBuy(){const p=getBidPlayer();clearBidCountdown();if(!p){bidFinalizing=false;return}if(currentBid>state.purse){bidFinalizing=false;addBidLog('Your purse is too low.');return}const idx=state.auction.findIndex(x=>x.id===p.id);if(idx===-1){bidFinalizing=false;return}const bought=state.auction.splice(idx,1)[0];bought.boughtFor=currentBid;bought.xi=false;bought.captain=false;state.purse=Number((state.purse-currentBid).toFixed(1));state.squads[state.user].push(bought); state.progress.xp += 20; state.progress.coins += 10; state.progress.level = currentLevel(state.progress.xp);addBidLog(`Sold to you for ${money(currentBid)}.`);pushEvent(`Auction win: ${bought.name} (${bought.role}, OVR ${bought.rating}) joined for ${money(currentBid)}. Purse left: ${money(state.purse)}.`);sfx('buy');saveState();renderAll();setTimeout(()=>{bidFinalizing=false;if(!finishAuctionIfNeeded())openBidRoom()},360)}
+function passPlayer(autoMove=false){const p=getBidPlayer();clearBidCountdown();if(!p){bidFinalizing=false;return}const idx=state.auction.findIndex(x=>x.id===p.id);if(idx===-1){bidFinalizing=false;return}state.auction.splice(idx,1);addBidLog(autoMove?`Auctioneer closes ${p.name} with no valid bid.`:`You passed on ${p.name}.`);sfx('whoosh');speakByKind('pass');saveState();renderAll();setTimeout(()=>{bidFinalizing=false;if(!finishAuctionIfNeeded())openBidRoom()},260)}
+function setupInteractiveMatch(){const next=currentFixture();if(!next)return null;const userXI=state.squads[state.user].filter(p=>p.xi).slice(0,11);if(userXI.length<11)return null;const oppXI=state.squads[next.opp].slice(0,11);matchState={fixtureId:next.id,opponent:next.opp,userXI,oppXI,tossDone:false,userCall:null,tossWinner:null,battingFirst:null,innings:1,balls:0,runs1:0,wk1:0,runs2:0,wk2:0,target:null,strikerTeam:null,completed:false,batters:{teamA1:userXI[0]?.name||'Opener 1',teamA2:userXI[1]?.name||'Opener 2',teamB1:oppXI[0]?.name||'Opener 1',teamB2:oppXI[1]?.name||'Opener 2'},currentBowler:oppXI[10]?.name||oppXI[5]?.name||'Strike Bowler',freeHit:false,lastOutcome:'',completed:false,log:['Interactive ODI-style match ready. Start toss.']};return matchState}
+function findPlayerByName(name, code){const arr=(code===state.user?matchState?.userXI:matchState?.oppXI)||state.squads[code]||[];return arr.find(p=>p.name===name)||null}
+function strikerPlayer(){if(!matchState) return null; const code=currentBattingCode(); const name=code===state.user?matchState.batters.teamA1:matchState.batters.teamB1; return findPlayerByName(name, code)}
+function bowlerPlayer(){if(!matchState) return null; const code=currentBowlingCode(); return findPlayerByName(matchState.currentBowler, code)}
+function currentFixture(){return state.fixtures.find(f=>!f.played)||null}
+function formatOvers(balls){return `${Math.floor(balls/6)}.${balls%6}`}
+function openTossOverlay(){speakByKind('toss_start');const next=currentFixture();if(!next)return alert('No match left.');if(!matchState||matchState.fixtureId!==next.id){const ok=setupInteractiveMatch();if(!ok)return alert('Select 11 players first.')}const a=TEAMS.find(t=>t.code===state.user),b=TEAMS.find(t=>t.code===next.opp);tossBadgeA.innerHTML=badgeHTML(a);tossBadgeB.innerHTML=badgeHTML(b);tossTeamA.textContent=a.code;tossTeamB.textContent=b.code;tossStatus.textContent='Choose heads or tails.';batBowlBox.style.display='none';coin.textContent='TOSS';coin.classList.remove('flip');tossOverlay.classList.add('show')}
+function runToss(call){if(!matchState)return;matchState.userCall=call;speakByKind(call==='heads'?'heads':'tails');coin.classList.remove('flip');void coin.offsetWidth;coin.classList.add('flip');tossStatus.textContent=`${state.user} captain called ${call}. Coin in the air...`;sfx('start');setTimeout(()=>{const result=Math.random()>.5?'heads':'tails',userWon=result===call;coin.textContent=result.toUpperCase();matchState.tossDone=true;matchState.tossWinner=userWon?state.user:matchState.opponent;if(userWon){tossStatus.textContent=`Result: ${result.toUpperCase()}. You won the toss. Choose Bat or Bowl.`;batBowlBox.style.display='flex'}else{matchState.battingFirst=matchState.opponent;matchState.strikerTeam=matchState.opponent;tossStatus.textContent=`Result: ${result.toUpperCase()}. ${matchState.opponent} won the toss and will bat first.`;matchState.log.push(`${matchState.opponent} won toss and chose to bat.`);setTimeout(()=>{tossOverlay.classList.remove('show');renderAll()},1100)}},1250)}
+function chooseAfterToss(choice){if(!matchState||!matchState.tossDone)return;speakByKind(choice==='bat'?'bat_first':'bowl_first');matchState.battingFirst=choice==='bat'?state.user:matchState.opponent;matchState.strikerTeam=matchState.battingFirst;matchState.log.push(`${state.user} won toss and chose to ${choice}.`);tossStatus.textContent=`${state.user} chose to ${choice} first.`;setTimeout(()=>{tossOverlay.classList.remove('show');renderAll()},900)}
+function finishInteractiveMatch(){const next=currentFixture();if(!next||!matchState)return;const userBatFirst=matchState.battingFirst===state.user,userRuns=userBatFirst?matchState.runs1:matchState.runs2,oppRuns=userBatFirst?matchState.runs2:matchState.runs1,userWk=userBatFirst?matchState.wk1:matchState.wk2,oppWk=userBatFirst?matchState.wk2:matchState.wk1,win=userRuns>oppRuns;next.played=true;next.userRuns=userRuns;next.oppRuns=oppRuns;next.result=win?'W':'L';state.table[state.user].m++;if(win){state.table[state.user].w++;state.table[state.user].pts+=2}else state.table[state.user].l++;state.table[state.user].nrr+=(userRuns-oppRuns)/100;state.table[next.opp].m++;if(win)state.table[next.opp].l++;else{state.table[next.opp].w++;state.table[next.opp].pts+=2}state.table[next.opp].nrr+=(oppRuns-userRuns)/100;const rew=rewardForWin(win);state.progress.xp += rew.xp; state.progress.coins += rew.coins; state.progress.level = currentLevel(state.progress.xp);const topBatter=(matchState.userXI||[]).concat(matchState.oppXI||[]).sort((a,b)=>(b.season?.runs||0)-(a.season?.runs||0))[0];const topBowler=(matchState.userXI||[]).concat(matchState.oppXI||[]).sort((a,b)=>(b.season?.wickets||0)-(a.season?.wickets||0))[0];state.currentMatch={opp:next.opp,userRuns,oppRuns,userWk,oppWk,result:win?`${state.user} won`:`${next.opp} won`,log:[...matchState.log].slice(-10)};matchState.completed=true;speakByKind('match_win', win?state.user:next.opp);pushEvent(`Interactive result: ${state.currentMatch.result} • ${userRuns}/${userWk} vs ${oppRuns}/${oppWk}`);resultWinner.textContent=win?state.user:next.opp;resultScore.textContent=`${userRuns}/${userWk} vs ${oppRuns}/${oppWk}`;resultRewards.textContent=`+${rew.xp} XP • +${rew.coins} Coins`;resultTopBatter.textContent=topBatter?`${topBatter.name} (${topBatter.season?.runs||0} runs)`:'-';resultTopBowler.textContent=topBowler?`${topBowler.name} (${topBowler.season?.wickets||0} wkts)`:'-';resultLevel.textContent=`Level ${state.progress.level}`;resultSub.textContent=state.currentMatch.result;resultOverlay.classList.add('show');saveState();renderAll()}
+function playInteractiveBall(mode,value){
+  if(!matchState||matchState.completed) return;
+  const isFirst=matchState.innings===1;
+  const battingCode=currentBattingCode(), bowlingCode=currentBowlingCode();
+  const battingXI = battingCode===state.user ? matchState.userXI : matchState.oppXI;
+  const bowlingXI = bowlingCode===state.user ? matchState.userXI : matchState.oppXI;
+  const striker = strikerPlayer(), bowler = bowlerPlayer();
+  const applyRuns=r=>{ if(isFirst) matchState.runs1+=r; else matchState.runs2+=r; if(striker) striker.season.runs += r; };
+  const applyWicket=()=>{
+    if(isFirst) matchState.wk1+=1; else matchState.wk2+=1;
+    if(bowler) bowler.season.wickets += 1;
+    const nextIndex = (isFirst ? matchState.wk1 : matchState.wk2) + 1;
+    if(battingCode===state.user){ matchState.batters.teamA1 = battingXI[nextIndex]?.name || 'New Batsman'; }
+    else { matchState.batters.teamB1 = battingXI[nextIndex]?.name || 'New Batsman'; }
+  };
+  let wicketTriggered=false, legalBall=true;
+  if(mode==='bat'){
+    if(value==='wd'){ applyRuns(1); legalBall=false; matchState.log.push('Batting choice drew a wide.'); speakByKind('single'); }
+    else if(value==='nb'){ applyRuns(1); legalBall=false; matchState.freeHit=true; matchState.log.push('No ball! Free hit coming up.'); speakLine('No ball! Free hit aa raha hai.', 'NO BALL', 'AI Match Voice'); }
+    else {
+      const runs=Number(value);
+      applyRuns(runs);
+      matchState.log.push(`Batting choice: ${runs} run${runs!==1?'s':''}.`);
+      if(runs===0) speakByKind('dot');
+      if(runs===1) speakByKind('single');
+      if(runs===2) speakByKind('double');
+      if(runs===3) speakLine('Excellent running, that is three.', '3 RUNS', 'AI Match Voice');
+      if(runs===4) speakByKind('four');
+      if(runs===6) speakByKind('six');
+      if(aiWicketChance(mode,value)){ applyWicket(); wicketTriggered=true; matchState.log.push('AI chance triggered a wicket on the attacking shot!'); speakByKind('wicket'); }
+    }
+  } else {
+    if(value==='dot'){ matchState.log.push('Bowling choice: dot ball.'); speakByKind('dot'); }
+    if(value==='single'){ applyRuns(1); matchState.log.push('Bowling choice: single conceded.'); speakByKind('single'); }
+    if(value==='double'){ applyRuns(2); matchState.log.push('Bowling choice: two conceded.'); speakByKind('double'); }
+    if(value==='wicket'){ applyWicket(); wicketTriggered=true; matchState.log.push('Bowling choice: wicket!'); speakByKind('wicket'); }
+    if(value==='boundary'){ applyRuns(4); matchState.log.push('Bowling choice: boundary conceded.'); speakByKind('boundary_conceded'); }
+    if(value==='six'){ applyRuns(6); matchState.log.push('Bowling choice: six conceded.'); speakByKind('six'); }
+    if(value==='wide'){ applyRuns(1); legalBall=false; matchState.log.push('Bowling choice: wide.'); speakLine('That is a wide down the leg side.', 'WIDE', 'AI Match Voice'); }
+    if(value==='noball'){ applyRuns(1); legalBall=false; matchState.freeHit=true; matchState.log.push('Bowling choice: no ball. Free hit!'); speakLine('No ball from the bowler. Free hit next.', 'NO BALL', 'AI Match Voice'); }
+    if(!wicketTriggered && aiWicketChance(mode,value)){ applyWicket(); wicketTriggered=true; matchState.log.push('AI pressure created an extra wicket chance!'); speakByKind('wicket'); }
+  }
+
+  if(legalBall){
+    if((matchState.balls+1) % 6 === 0){
+      const bowlerIndex = 6 + (Math.floor((matchState.balls+1)/6) % 5);
+      matchState.currentBowler = bowlingXI[bowlerIndex]?.name || bowlingXI[5]?.name || 'Next Bowler';
+      if(matchState.freeHit) matchState.freeHit = false;
+    }
+    matchState.balls+=1;
+  }
+
+  if(striker){ striker.season.matches = (striker.season.matches||0) + (legalBall?0:0); striker.recent = Math.min(100, Math.max(0, striker.recent + (wicketTriggered?-8:2))); }
+  if(bowler){ bowler.season.matches = (bowler.season.matches||0) + (legalBall?0:0); bowler.recent = Math.min(100, Math.max(0, bowler.recent + (wicketTriggered?6:(value==='wide' ? -2 : 0)))); }
+
+  if(isFirst){
+    if(matchState.balls>=300||matchState.wk1>=10){
+      matchState.target=matchState.runs1+1;
+      matchState.innings=2;
+      matchState.balls=0;
+      matchState.strikerTeam=matchState.battingFirst===state.user?matchState.opponent:state.user;
+      matchState.currentBowler = (matchState.battingFirst===state.user?matchState.userXI:matchState.oppXI)[10]?.name || 'Strike Bowler';
+      matchState.log.push(`Innings break. Target is ${matchState.target}.`);
+      speakByKind('innings_break', matchState.target);
+    }
+  } else {
+    if(matchState.runs2>=matchState.target||matchState.balls>=300||matchState.wk2>=10){
+      finishInteractiveMatch();
+      return;
+    }
+  }
+  renderAll();
+}
+
+function currentBattingCode(){
+  if(!matchState) return '';
+  return matchState.innings===1 ? matchState.battingFirst : (matchState.battingFirst===state.user ? matchState.opponent : state.user);
+}
+function currentBowlingCode(){
+  const bat = currentBattingCode();
+  return bat===state.user ? matchState.opponent : state.user;
+}
+function updateLiveStatus(){
+  const wrap = document.getElementById('statusStrip');
+  if(!wrap){ return; }
+  const next = currentFixture();
+  if(!next || !matchState){ wrap.innerHTML=''; return; }
+  const batting = currentBattingCode(), bowling = currentBowlingCode();
+  const striker = batting===state.user ? matchState.batters.teamA1 : matchState.batters.teamB1;
+  const nonStriker = batting===state.user ? matchState.batters.teamA2 : matchState.batters.teamB2;
+  wrap.innerHTML = `
+    <div class="statusStrip">
+      <div class="statusMini"><div class="k">Batting Team</div><div class="v">${batting}</div></div>
+      <div class="statusMini"><div class="k">Bowling Team</div><div class="v">${bowling}</div></div>
+      <div class="statusMini"><div class="k">Striker Name</div><div class="v">${striker}</div></div>
+      <div class="statusMini"><div class="k">Non-Striker</div><div class="v">${nonStriker}</div></div>
+      <div class="statusMini"><div class="k">Bowler Name</div><div class="v">${matchState.currentBowler}</div></div>
+    </div>`;
+}
+function aiWicketChance(mode, value){
+  if(!matchState || matchState.completed) return false;
+  const striker = strikerPlayer(), bowler = bowlerPlayer();
+  const inningRuns = matchState.innings===1 ? matchState.runs1 : matchState.runs2;
+  const inningWkts = matchState.innings===1 ? matchState.wk1 : matchState.wk2;
+  let chance = 0.035;
+  if(striker){ chance += Math.max(0, (68 - striker.handling)) / 1000; chance += Math.max(0, (72 - striker.form)) / 1400; chance += Math.max(0, (55 - striker.recent)) / 1800; }
+  if(bowler){ chance += Math.max(0, (bowler.rating - 80)) / 550; chance += Math.max(0, (bowler.form - 72)) / 900; }
+  if(mode==='bat'){
+    const runs = Number(value);
+    if(runs===4) chance += 0.04;
+    if(runs===6) chance += 0.08;
+    if(runs===3) chance += 0.015;
+    if(runs===2) chance += 0.008;
+  } else {
+    if(value==='wicket') return true;
+    if(value==='boundary') chance += 0.02;
+    if(value==='six') chance += 0.03;
+    if(value==='single') chance += 0.004;
+    if(value==='dot') chance += 0.015;
+    if(value==='wide') chance -= 0.005;
+    if(value==='noball') chance -= 0.01;
+  }
+  if(matchState.freeHit) chance = 0;
+  if(matchState.balls % 6 >= 4) chance += 0.01;
+  if(inningRuns > 120) chance += 0.012;
+  if(inningWkts >= 5) chance += 0.02;
+  if(matchState.innings===2 && matchState.target){
+    const required = matchState.target - matchState.runs2;
+    const ballsLeft = Math.max(1, 300 - matchState.balls);
+    const reqRate = (required * 6) / ballsLeft;
+    if(reqRate > 8) chance += 0.03;
+    if(reqRate > 10) chance += 0.04;
+  }
+  return Math.random() < chance;
+}
+function renderPlay(){const next=currentFixture();playMeta.textContent=next?`${state.user} vs ${next.opp} • Match Day ${next.day}`:'No match left';if(!next){playBoard.innerHTML='<div class="flash" style="font-size:1.6rem">No pending match</div>';commentaryBox.innerHTML='';interactiveArea.innerHTML='';document.getElementById("statusStrip").innerHTML='';return}if(!matchState||matchState.fixtureId!==next.id)matchState=null;if(!matchState){playBoard.innerHTML=`<div class="flash" style="font-size:1.8rem">${state.user} vs ${next.opp}</div><div class="small" style="margin-top:10px">Pick XI and start toss. ODI mode: 50 overs, 10 wickets.</div>`;interactiveArea.innerHTML='<div class="card" style="margin-top:14px">Select 11 players first. Then use Start Toss.</div>';commentaryBox.innerHTML='<div class="item">Interactive match will load here.</div>';updateLiveStatus();return}const inningsScore=matchState.innings===1?`${matchState.runs1}/${matchState.wk1}`:`${matchState.runs2}/${matchState.wk2}`,chase=matchState.target?`${Math.max(0,matchState.target-matchState.runs2)} needed`:'ODI 1st innings';const strikerNm = currentBattingCode()===state.user ? matchState.batters.teamA1 : matchState.batters.teamB1;
+const nonStrikerNm = currentBattingCode()===state.user ? matchState.batters.teamA2 : matchState.batters.teamB2;
+playBoard.innerHTML=`<div class="flash" style="font-size:1.8rem">${state.user} vs ${next.opp}</div><div class="small" style="margin-top:10px">Striker: <b>${strikerNm}</b> • Non-striker: <b>${nonStrikerNm}</b> • Bowler: <b>${matchState.currentBowler}</b> ${matchState.freeHit?'<span class="badge gold">FREE HIT</span>':''}</div><div class="inningsStrip"><div class="stat vibrant"><div class="k">Innings</div><div class="v">${matchState.innings}</div></div><div class="stat vibrant"><div class="k">Score</div><div class="v">${inningsScore}</div></div><div class="stat vibrant"><div class="k">Overs</div><div class="v">${formatOvers(matchState.balls)}</div></div><div class="stat vibrant"><div class="k">Target</div><div class="v">${matchState.target?matchState.target:'-'}</div></div><div class="stat vibrant"><div class="k">Status</div><div class="v">${chase}</div></div></div><div class="small" style="margin-top:14px">${matchState.tossDone?`${matchState.tossWinner} won toss • ${matchState.battingFirst} bats first`:'Toss pending'}</div>`;commentaryBox.innerHTML='';[...matchState.log].slice().reverse().forEach(line=>{const d=document.createElement('div');d.className='item';d.textContent=line;commentaryBox.appendChild(d)});if(!matchState.tossDone){interactiveArea.innerHTML=`<div class="card" style="margin-top:14px"><div class="line"><div><b>Toss Required</b><div class="small" style="margin-top:6px">Use Start Toss to open the captain call overlay. ODI mode is active.</div></div><button class="primary" id="openTossInline">Open Toss</button></div></div>`;document.getElementById('openTossInline').onclick=openTossOverlay;return}if(matchState.completed){interactiveArea.innerHTML='<div class="card" style="margin-top:14px"><b>Interactive match completed.</b></div>';updateLiveStatus();return}const userBattingNow=matchState.strikerTeam===state.user;interactiveArea.innerHTML=`<div class="card" style="margin-top:14px"><div class="line"><div><b>${userBattingNow?'Batting Controls':'Bowling Controls'}</b><div class="small" style="margin-top:6px">${userBattingNow?'Choose your shot outcome.':'Choose the bowling outcome.'}</div></div><div class="small">Ball ${matchState.balls+1}</div></div><div class="actionGrid" style="margin-top:14px">${userBattingNow?`<button class="batBtn" data-run="1">1 Run</button><button class="batBtn" data-run="2">2 Runs</button><button class="batBtn" data-run="4">4 Runs</button><button class="batBtn" data-run="6">6 Runs</button><button class="batBtn" data-run="0">Dot</button><button class="batBtn" data-run="wd">Wide</button><button class="batBtn" data-run="nb">No Ball</button><button class="batBtn" data-run="3">3 Runs</button>`:`<button class="bowlBtn" data-out="dot">Dot Ball</button><button class="bowlBtn" data-out="single">Single</button><button class="bowlBtn" data-out="wicket">Wicket</button><button class="bowlBtn" data-out="boundary">Boundary</button><button class="bowlBtn" data-out="wide">Wide</button><button class="bowlBtn" data-out="noball">No Ball</button><button class="bowlBtn" data-out="six">Six</button><button class="bowlBtn" data-out="double">Double</button>`}</div></div>`;interactiveArea.querySelectorAll('.batBtn').forEach(btn=>btn.onclick=()=>playInteractiveBall('bat',btn.dataset.run));interactiveArea.querySelectorAll('.bowlBtn').forEach(btn=>btn.onclick=()=>playInteractiveBall('bowl',btn.dataset.out));updateLiveStatus()}
+function autoPlayMatch(){const next=currentFixture();if(!next)return alert('No match left.');const xi=state.squads[state.user].filter(p=>p.xi);if(xi.length<11)return alert('Select 11 players first.');const userRuns=rand(130,220),oppRuns=rand(126,218),userWk=rand(2,9),oppWk=rand(2,9),win=userRuns>oppRuns;next.played=true;next.userRuns=userRuns;next.oppRuns=oppRuns;next.result=win?'W':'L';state.table[state.user].m++;if(win){state.table[state.user].w++;state.table[state.user].pts+=2}else state.table[state.user].l++;state.table[state.user].nrr+=(userRuns-oppRuns)/100;state.table[next.opp].m++;if(win)state.table[next.opp].l++;else{state.table[next.opp].w++;state.table[next.opp].pts+=2}state.table[next.opp].nrr+=(oppRuns-userRuns)/100;state.currentMatch={opp:next.opp,userRuns,oppRuns,userWk,oppWk,result:win?`${state.user} won`:`${next.opp} won`,log:['Auto-play used.','Match completed.']};matchState=null;pushEvent(`Auto result: ${state.currentMatch.result} • ${userRuns}/${userWk} vs ${oppRuns}/${oppWk}`);saveState();renderAll()}
+function renderTable(){tableBody.innerHTML='';Object.entries(state.table).sort((a,b)=>b[1].pts-a[1].pts||b[1].nrr-a[1].nrr).forEach(([code,r],i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td>${code===state.user?'<b>'+code+'</b>':code}</td><td>${r.m}</td><td>${r.w}</td><td>${r.l}</td><td>${r.pts}</td><td>${(r.nrr>=0?'+':'')+r.nrr.toFixed(2)}</td>`;tableBody.appendChild(tr)})}
+function renderAll(){if(!state)return;renderDashboard();renderAuction();renderSquad();renderPlay();renderTable()}
+function runAuctionSequence(){speakByKind('auction_start');sequenceOverlay.classList.add('show');sequenceFill.style.width='0%';const steps=[['ROOM LOCKED',20,'Players seated. Purse checks done.','tick'],['BIDDERS LIVE',48,'Franchises are entering the room.','tick'],['GOING LIVE',78,'Auctioneer mic check. Market opening.','whoosh'],['START',100,'Auction is now live. Build your squad.','start']];steps.forEach((step,i)=>setTimeout(()=>{sequenceFlash.textContent=step[0];sequenceText.textContent=step[2];sequenceFill.style.width=step[1]+'%';sfx(step[3])},i*820+150))}
+renderTeams();document.addEventListener('click',()=>ensureAudio(),{once:true});
+const openTutorialBtn = document.getElementById('openTutorialBtn');
+if(openTutorialBtn) openTutorialBtn.onclick = openTutorial;
+const tutorialCloseBtn = document.getElementById('tutorialCloseBtn');
+if(tutorialCloseBtn) tutorialCloseBtn.onclick = closeTutorial;
+const tutorialLaterBtn = document.getElementById('tutorialLaterBtn');
+if(tutorialLaterBtn) tutorialLaterBtn.onclick = closeTutorial;
+setTimeout(openTutorial, 200);
+window.speechSynthesis && window.speechSynthesis.getVoices();setTimeout(updateVoiceUI, 100);const closeResultBtnEl=document.getElementById('closeResultBtn'); if(closeResultBtnEl) closeResultBtnEl.onclick=()=>resultOverlay.classList.remove('show');
+const guideBtnEl = document.getElementById('openTutorialBtn');
+if(guideBtnEl){
+  guideBtnEl.onclick = ()=>openTutorial();
+  guideBtnEl.addEventListener('click', ()=>openTutorial());
+}
+const closeGuideEl = document.getElementById('tutorialCloseBtn');
+if(closeGuideEl){
+  closeGuideEl.onclick = ()=>closeTutorial();
+  closeGuideEl.addEventListener('click', ()=>closeTutorial());
+}
+const maybeLaterEl = document.getElementById('tutorialLaterBtn');
+if(maybeLaterEl){
+  maybeLaterEl.onclick = ()=>closeTutorial();
+  maybeLaterEl.addEventListener('click', ()=>closeTutorial());
+}
+document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>switchTab(btn.dataset.tab));
+chooseTeamBtn.onclick=showStart;saveBtn.onclick=()=>state?(saveState(),alert('Saved.')):alert('Choose a team first.');loadBtn.onclick=()=>{if(!loadState())alert('No saved simulator found.')};resetBtn.onclick=()=>{if(confirm('Reset simulator?')){localStorage.removeItem('ipl_wcc3_clean_rebuild_2026');location.reload()}};
+startAuctionSequenceBtn.onclick=runAuctionSequence;closeSequenceBtn.onclick=()=>sequenceOverlay.classList.remove('show');
+openBidRoomBtn.onclick=()=>{if(!state)return alert('Choose a team first.');if(state.auction.length===0)return alert('Auction is finished.');runAuctionSequence();setTimeout(()=>openBidRoom(),900)};
+nextBidPlayerBtn.onclick=()=>{if(!state)return alert('Choose a team first.');if(state.auction.length===0)return alert('Auction is finished.');if(bidOverlay.classList.contains('show'))return;openBidRoom()};
+resetAuctionBtn.onclick=()=>{if(!state)return;clearBidCountdown();bidFinalizing=false;state.auction=STAR_POOL.map(starToPlayer);state.squads[state.user]=[];state.purse=300;pushEvent('Auction reset. Fresh market loaded.');sfx('whoosh');saveState();renderAll()};
+document.querySelectorAll('.stepBtn').forEach(btn=>{btn.onmousedown=e=>e.preventDefault();btn.onclick=()=>increaseBid(Number(btn.dataset.step))});aiBidBtn.onmousedown=e=>e.preventDefault();aiBidBtn.onclick=aiCounter;buyPlayerBtn.onmousedown=e=>e.preventDefault();buyPlayerBtn.onclick=()=>{bidFinalizing=true;confirmBuy()};passPlayerBtn.onmousedown=e=>e.preventDefault();passPlayerBtn.onclick=()=>{bidFinalizing=true;passPlayer(false)};closeBidBtn.onmousedown=e=>e.preventDefault();closeBidBtn.onclick=()=>{clearBidCountdown();bidOverlay.classList.remove('show');bidFinalizing=false};
+autoPickBtn.onclick=autoPickXI;openTossBtn.onclick=openTossOverlay;closeTossBtn.onclick=()=>tossOverlay.classList.remove('show');headsBtn.onclick=()=>runToss('heads');tailsBtn.onclick=()=>runToss('tails');chooseBatBtn.onclick=()=>chooseAfterToss('bat');chooseBowlBtn.onclick=()=>chooseAfterToss('bowl');autoPlayBtn.onclick=autoPlayMatch;
+ 
+</script>
+</body>
+</html>
